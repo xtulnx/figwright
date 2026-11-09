@@ -12,6 +12,8 @@
   Pairs with a Figma plugin, not a Dev Mode seat.
 </p>
 
+**English** · [简体中文](./README.zh-CN.md)
+
 [About](#about) · [Setup](#setup) · [Skills](#skills) · [Tools](#tools) · [Plugin](#plugin) · [FAQ](#faq) · [Contributing](#contributing)
 
 [![npm](https://img.shields.io/npm/v/@figwright/mcp?logo=npm&color=cb3837)](https://www.npmjs.com/package/@figwright/mcp)
