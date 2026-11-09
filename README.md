@@ -45,7 +45,7 @@ Everything runs on your machine: the server, the relay, and the plugin. Your des
 ## Why Figwright
 
 - **Not gated**: the official Dev Mode MCP is behind a paid Dev Mode seat. Figwright runs on the free tier.
-- **Bidirectional**: not read-only. **135 tools** span reading _and_ writing the canvas, so an agent can both implement designs and build them.
+- **Bidirectional**: not read-only. **138 tools** span reading _and_ writing the canvas, so an agent can both implement designs and build them.
 - **Provider-first codegen**: Figwright detects your real stack (framework + styling system) and reuses your existing components, tokens, and icons, instead of emitting generic markup you have to rewrite.
 - **One agent per file**: several agents can work at once, each claiming its own open Figma file. Switching tabs no longer sends one agent's edits into another's design — see [working across files](#faq).
 - **Open & extensible**: the read/write workflows ship as installable [skills](#skills) you can adopt or fork.
@@ -135,7 +135,7 @@ npx skills add https://github.com/awdr74100/figwright/tree/main/skills/figma-cod
 
 ## Tools
 
-Figwright exposes **135 MCP tools** in three groups:
+Figwright exposes **138 MCP tools** in three groups:
 
 - **Read**: selection, document and node inspection, styles, variables, components, fonts, prototype reactions and flows, motion (animation) state, screenshots, original image-fill assets, PDF export, and video export of animated frames (MP4 / GIF / WebM); plus `list_files` / `use_file` for working across more than one open Figma file at once.
 - **Write**: create and edit frames, text, shapes (lines, polygons, stars, boolean operations, flattening), auto-layout, alignment and distribution, effects, images (as a new layer or into an existing layer's fill), styles, variables (including importing a team library's variables and styles, and switching a frame to a mode such as Dark), components (including authoring their boolean/text/instance-swap properties), pages, prototype reactions and flows, Motion animations (keyframes, animation-style presets, timelines), and Figma Draw (vector paths drawn and edited point by point from any SVG path data, outlined strokes, repeat groups, text on a path, brush / dynamic / variable-width strokes, pattern fills); plus a `batch` tool to apply many edits at once.
@@ -143,6 +143,10 @@ Figwright exposes **135 MCP tools** in three groups:
 
 > [!TIP]
 > Your MCP client lists every tool at connect time, which is always the authoritative, up-to-date catalog.
+
+The plugin’s **Backup** tab saves the current page to a local `.figwright-backup` file and restores selected archived pages into new pages, without AI, MCP, or a running relay. Reopen the locally built plugin to load the new tab. It checks integrity and shows coverage issues before restoring; known gaps require explicit partial-restore consent.
+
+Experimental backup work adds `backup_design` (an **incomplete** raw snapshot, with experimental new-page restore via `restore_backup`) and `inspect_backup` (local integrity inspection). See [backup setup and limitations](./BACKUP_USAGE.md); these snapshots do not replace complete design backups.
 
 ## Plugin
 

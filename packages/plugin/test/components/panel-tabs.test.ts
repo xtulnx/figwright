@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import PanelTabs from '../../ui/components/PanelTabs.vue';
 import { TABS } from '../../ui/lib/tabs.js';
 
-const mountTabs = (modelValue: 'activity' | 'context' | 'debug' = 'activity') =>
+const mountTabs = (modelValue: 'activity' | 'context' | 'backup' | 'debug' = 'activity') =>
   mount(PanelTabs, { props: { modelValue } });
 
 /** The sliding pill is the only absolutely-positioned span in the nav. */
@@ -41,6 +41,7 @@ describe('PanelTabs', () => {
   it('parks the indicator at the active tab index', () => {
     expect(indicatorTransform(mountTabs('activity'))).toContain('translateX(calc(0 *');
     expect(indicatorTransform(mountTabs('context'))).toContain('translateX(calc(1 *');
-    expect(indicatorTransform(mountTabs('debug'))).toContain('translateX(calc(2 *');
+    expect(indicatorTransform(mountTabs('backup'))).toContain('translateX(calc(2 *');
+    expect(indicatorTransform(mountTabs('debug'))).toContain('translateX(calc(3 *');
   });
 });

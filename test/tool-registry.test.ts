@@ -24,6 +24,7 @@ const SERVER_ONLY_TOOLS = new Set([
   'save_screenshots',
   'use_file',
   'analyze_project',
+  'inspect_backup',
   'scan_components',
   'component_map',
   'token_map',

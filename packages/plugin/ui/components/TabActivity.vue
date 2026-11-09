@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Radio } from '@lucide/vue';
 
+import { t } from '../lib/i18n.js';
 import type { ActivityEntry } from '../relay/state.js';
 import TabActivityRow from './TabActivityRow.vue';
 
@@ -22,13 +23,13 @@ defineProps<{
   <div v-else class="flex flex-1 flex-col items-center justify-center gap-1.5 px-6 text-center">
     <Radio class="mb-0.5 size-6 text-faint" />
     <p class="font-medium text-dim">
-      {{ connected ? 'Connected and idle' : 'Waiting for the MCP client' }}
+      {{ t(connected ? 'Connected and idle' : 'Waiting for the MCP client') }}
     </p>
     <p class="text-meta leading-relaxed text-dim">
       {{
         connected
-          ? 'Tool calls from your agent will show up here.'
-          : 'Start your agent — this panel connects automatically.'
+          ? t('Tool calls from your agent will show up here.')
+          : t('Start your agent — this panel connects automatically.')
       }}
     </p>
   </div>

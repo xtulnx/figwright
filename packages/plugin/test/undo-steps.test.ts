@@ -141,6 +141,8 @@ describe('undo steps in the handler map', () => {
     page.children = [node];
     const figmaApi = {
       commitUndo,
+      editorType: 'figma',
+      loadFontAsync: () => new Promise(() => {}),
       mixed: Symbol('mixed'),
       getNodeByIdAsync: async (id: string) => (id === '1:1' ? node : null),
       currentPage: page,
@@ -175,6 +177,58 @@ describe('undo steps in the handler map', () => {
     });
     expect(node.name).toBe('B');
     expect(commitUndo).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a cancellable restore tracked past the normal expiry without blocking ordinary writes', async () => {
+    vi.useFakeTimers();
+    try {
+      const { handlers, node, commitUndo } = setup();
+      const payload = JSON.stringify({
+        snapshot: {
+          captureVersion: 1,
+          source: { name: 'Archive', editorType: 'figma' },
+          pageIds: ['p'],
+          issues: [],
+          nodes: [
+            { id: 'p', type: 'PAGE', parentId: null, children: ['text'], properties: {} },
+            {
+              id: 'text',
+              type: 'TEXT',
+              parentId: 'p',
+              children: [],
+              properties: {
+                fontName: { state: 'value', value: { family: 'Pending', style: 'Regular' } },
+              },
+            },
+          ],
+        },
+        images: {},
+        allowPartial: false,
+      });
+      const { restoreId } = (await handlers.restore_backup!({
+        mode: 'start',
+        totalChars: payload.length,
+      })) as { restoreId: string };
+      await handlers.restore_backup!({ mode: 'append', restoreId, offset: 0, text: payload });
+      await handlers.restore_backup!({ mode: 'commit', restoreId, requestId: 'restore' });
+      await vi.advanceTimersByTimeAsync(STALE_WRITE_MS);
+      await handlers.rename_node!({ nodeId: '1:1', name: 'Concurrent', requestId: 'concurrent' });
+      expect(node.name).toBe('Concurrent');
+      expect(commitUndo).not.toHaveBeenCalled();
+      expect(await handlers.restore_backup!({ mode: 'status', restoreId })).toMatchObject({
+        state: 'running',
+      });
+      await handlers.restore_backup!({ mode: 'cancel', restoreId });
+      await vi.advanceTimersByTimeAsync(0);
+      expect(await handlers.restore_backup!({ mode: 'status', restoreId })).toMatchObject({
+        state: 'failed',
+        error: 'Restore cancelled',
+      });
+      expect(commitUndo).toHaveBeenCalledOnce();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('closes no step for a read', async () => {

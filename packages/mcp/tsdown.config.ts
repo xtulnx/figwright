@@ -19,7 +19,7 @@ export default defineConfig({
   },
   fixedExtension: true,
   publint: true,
-  deps: { alwaysBundle: ['@figwright/shared'] },
+  deps: { alwaysBundle: ['@figwright/shared', /^@noble\/hashes/] },
   outputOptions: {
     banner: '#!/usr/bin/env node',
   },

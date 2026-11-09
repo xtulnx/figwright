@@ -18,6 +18,7 @@ export interface RelaySession {
   /** True while at least one tool call is in flight. */
   busy: ComputedRef<boolean>;
   sessionId: string;
+  callSandbox: ReturnType<typeof createToolBridge>['handler'];
   /** Serialized bundle (versions + context + calls) for pasting into a bug report. */
   buildDiagnostics: () => string;
 }
@@ -146,6 +147,7 @@ export const useRelaySession = (appVersion: string): RelaySession => {
     // more than one piece of chrome reads it.
     busy: computed(() => state.value.activity.some(e => e.status === 'pending')),
     sessionId: client.sessionId,
+    callSandbox: bridge.handler,
     buildDiagnostics: () =>
       buildDiagnosticBundle(state.value, context.value, {
         pluginVersion: appVersion,

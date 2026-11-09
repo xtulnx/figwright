@@ -1,3 +1,5 @@
+import { createRestoreTransferHandler } from '../backup/restore-transfer.js';
+import { createBackupTransferHandler } from '../backup/transfer.js';
 import { markWriteHandler, type SandboxHandlers } from '../dispatcher.js';
 import { createIdempotencyCache, idempotent } from '../idempotency.js';
 import { withInstanceIdLookup } from '../node-lookup.js';
@@ -141,6 +143,7 @@ import {
 export const createSandboxHandlers = (figmaApi: typeof figma): SandboxHandlers => {
   const figmaCtx = withInstanceIdLookup(figmaApi);
   const cache = createIdempotencyCache();
+  const undoStep = createUndoSteps(figmaApi);
 
   const rawWrites: SandboxHandlers = {
     set_fills: createSetFillsHandler(figmaCtx),
@@ -251,6 +254,10 @@ export const createSandboxHandlers = (figmaApi: typeof figma): SandboxHandlers =
   };
 
   const handlers: SandboxHandlers = {
+    backup_design: createBackupTransferHandler(figmaCtx),
+    restore_backup: createRestoreTransferHandler(figmaCtx, async work =>
+      undoStep(() => work(), null)({}),
+    ),
     ping: createPingHandler(figmaCtx),
     get_selection: createGetSelectionHandler(figmaCtx),
     get_document: createGetDocumentHandler(figmaCtx),
@@ -283,10 +290,16 @@ export const createSandboxHandlers = (figmaApi: typeof figma): SandboxHandlers =
 
   // Inside the idempotency wrapper: a retried call replayed from the cache changed nothing, so it
   // neither waits its turn nor closes a step.
-  const undoStep = createUndoSteps(figmaApi);
   for (const name of Object.keys(rawWrites)) {
     handlers[name] = markWriteHandler(idempotent(cache, undoStep(rawWrites[name]!)));
   }
+  const restoreTransfer = handlers.restore_backup!;
+  const commitRestore = idempotent(cache, restoreTransfer);
+  handlers.restore_backup = markWriteHandler(params =>
+    (params as { mode?: string })?.mode === 'commit'
+      ? commitRestore(params)
+      : restoreTransfer(params),
+  );
   handlers.batch = markWriteHandler(
     idempotent(cache, undoStep(createBatchHandler(figmaCtx, rawWrites))),
   );

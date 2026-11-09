@@ -39,6 +39,8 @@
       "nodeId",
       "quality"
     ],
+    "backup_design": ["captureId", "maxChars", "mode", "offset", "pageId"],
+    "restore_backup": ["mode", "offset", "requestId", "restoreId", "text", "totalChars"],
     "set_fills": [
       "fills",
       "fills[].boundVariables",

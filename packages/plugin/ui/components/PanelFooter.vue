@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { t } from '../lib/i18n.js';
 defineProps<{ version: string; totalCalls: number; failedCalls: number }>();
 </script>
 
@@ -10,12 +11,14 @@ defineProps<{ version: string; totalCalls: number; failedCalls: number }>();
          footer is the tightest row in the UI. -->
     <span class="truncate">v{{ version }}</span>
     <span aria-hidden="true" class="opacity-50">·</span>
-    <span class="shrink-0 tabular-nums">{{ totalCalls }} calls</span>
+    <span class="shrink-0 tabular-nums">{{ t('{count} calls', { count: totalCalls }) }}</span>
     <!-- Only when something actually failed: a permanent "0 failed" would be noise on every
          healthy session, and the point of the number is to catch your eye when it isn't zero. -->
     <template v-if="failedCalls > 0">
       <span aria-hidden="true" class="opacity-50">·</span>
-      <span class="shrink-0 text-danger tabular-nums">{{ failedCalls }} failed</span>
+      <span class="shrink-0 text-danger tabular-nums">{{
+        t('{count} failed', { count: failedCalls })
+      }}</span>
     </template>
   </footer>
 </template>

@@ -25,6 +25,8 @@ export const HEAVY_TOOL_BUDGET_MS = 120_000;
 export const BUDGET_LAYER_MARGIN_MS = 5_000;
 
 const HEAVY_TOOLS: ReadonlySet<string> = new Set([
+  'backup_design',
+  'restore_backup',
   'get_screenshot',
   'save_screenshots',
   'save_image_fills',

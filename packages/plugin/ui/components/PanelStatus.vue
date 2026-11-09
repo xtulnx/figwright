@@ -3,6 +3,7 @@ import { computed } from 'vue';
 
 import { useSharedNow } from '../composables/useSharedNow.js';
 import { formatRelativeTime } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 import type { RelayStatus } from '../relay/state.js';
 
 const props = defineProps<{
@@ -39,7 +40,7 @@ const meta = computed(() => {
   const up =
     props.connectedAt === null
       ? ''
-      : ` · up ${formatRelativeTime(props.connectedAt, now.value.getTime())}`;
+      : ` · ${t('up {time}', { time: formatRelativeTime(props.connectedAt, now.value.getTime()) })}`;
   return `${port}${up}`;
 });
 </script>
@@ -53,7 +54,7 @@ const meta = computed(() => {
         :class="status === 'connected' ? 'shadow-[0_0_7px_currentColor]' : ''"
       />
     </span>
-    <span class="font-medium tracking-tight text-fg">{{ STATUS_LABEL[status] }}</span>
+    <span class="font-medium tracking-tight text-fg">{{ t(STATUS_LABEL[status]) }}</span>
     <span class="ml-auto min-w-0 truncate text-meta text-faint tabular-nums">{{ meta }}</span>
   </div>
 </template>

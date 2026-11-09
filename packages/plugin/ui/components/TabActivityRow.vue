@@ -4,6 +4,7 @@ import { computed, ref } from 'vue';
 
 import { useSharedNow } from '../composables/useSharedNow.js';
 import { formatClockTime, formatRelativeTime } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 import type { ActivityEntry, ActivityStatus } from '../relay/state.js';
 import { revealOnCanvas } from '../sandbox/commands.js';
 import UiPayloadBlock from './UiPayloadBlock.vue';
@@ -111,8 +112,8 @@ const durationTone = computed(() =>
         <button
           v-if="revealable"
           class="text-faint opacity-0 transition-opacity duration-150 group-hover:opacity-100 hover:text-fg focus-visible:opacity-100"
-          :aria-label="`Reveal the nodes ${entry.method} touched`"
-          title="Select and zoom to the nodes this call touched"
+          :aria-label="t('Reveal the nodes {method} touched', { method: entry.method })"
+          :title="t('Select and zoom to the nodes this call touched')"
           @click.stop="reveal"
         >
           <Crosshair class="size-3" />
@@ -145,7 +146,7 @@ const durationTone = computed(() =>
                belongs here, where you've opened a specific call to reconcile it against a log or a
                recording. -->
           <p class="font-mono text-meta text-faint">
-            Started {{ formatClockTime(entry.startedAt) }}
+            {{ t('Started {time}', { time: formatClockTime(entry.startedAt) }) }}
           </p>
 
           <!-- Why it failed, first — before the arguments, which are context for the reason rather
@@ -155,7 +156,7 @@ const durationTone = computed(() =>
                line. The message can be long, so it wraps and scrolls rather than stretching the
                panel. -->
           <div v-if="entry.error">
-            <UiSectionHeading class="mb-1">Error</UiSectionHeading>
+            <UiSectionHeading class="mb-1">{{ t('Error') }}</UiSectionHeading>
             <p
               class="max-h-40 overflow-auto rounded-md bg-raised p-2 font-mono text-meta leading-snug wrap-break-word text-danger"
             >
@@ -165,7 +166,7 @@ const durationTone = computed(() =>
 
           <UiPayloadBlock
             v-if="entry.request"
-            label="Request"
+            :label="t('Request')"
             :preview="entry.request.preview"
             max-height="max-h-40"
           />
@@ -174,7 +175,7 @@ const durationTone = computed(() =>
                second layout shift when the real block arrives. -->
           <UiPayloadBlock
             v-if="entry.payload"
-            label="Payload → LLM"
+            :label="t('Payload → LLM')"
             :preview="entry.payload.preview"
             :bytes="entry.payload.bytes"
             :truncated="entry.payload.truncated"

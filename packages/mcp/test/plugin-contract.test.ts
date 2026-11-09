@@ -141,7 +141,12 @@ describe('plugin argument contract', () => {
       spec =>
         spec.kind === 'local' && spec.serverOnlyArgs !== undefined && spec.serverOnlyArgs !== null,
     ).map(spec => spec.name);
-    expect(owns.toSorted()).toEqual(['export_pdf', 'export_video', 'save_image_fills']);
+    expect(owns.toSorted()).toEqual([
+      'backup_design',
+      'export_pdf',
+      'export_video',
+      'save_image_fills',
+    ]);
     for (const name of owns) expect(derived).toHaveProperty(name);
     // save_screenshots dispatches get_screenshot, so its arguments live under that entry, not here.
     expect(derived).not.toHaveProperty('save_screenshots');
@@ -187,7 +192,7 @@ describe('plugin argument contract', () => {
         tool: spec.name,
         missing: [],
       });
-      // Vacuous if the scan found nothing — every one of these hand-builds a payload.
+      // A scan finding no payload keys would pass vacuously.
       expect(seen.length).toBeGreaterThan(0);
     }
   });

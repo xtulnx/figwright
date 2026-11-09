@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatSize } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 import UiCopyButton from './UiCopyButton.vue';
 import UiSectionHeading from './UiSectionHeading.vue';
 
@@ -23,7 +24,7 @@ defineProps<{
       <span v-if="bytes !== undefined" class="shrink-0 text-meta text-faint tabular-nums">
         {{ formatSize(bytes) }}
       </span>
-      <UiCopyButton class="ml-auto" label="Copy" :value="preview" compact />
+      <UiCopyButton class="ml-auto" :label="t('Copy')" :value="preview" compact />
     </div>
 
     <pre
@@ -32,7 +33,7 @@ defineProps<{
       >{{ preview }}</pre>
 
     <p v-if="truncated" class="mt-1 text-meta text-dim">
-      Showing the first part only — the full result was larger.
+      {{ t('Showing the first part only — the full result was larger.') }}
     </p>
   </div>
 </template>

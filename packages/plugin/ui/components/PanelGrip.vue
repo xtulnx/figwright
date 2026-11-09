@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { usePanelWindow } from '../composables/usePanelWindow.js';
+import { t } from '../lib/i18n.js';
 
 const { onResizeStart } = usePanelWindow();
 </script>
@@ -36,7 +37,7 @@ const { onResizeStart } = usePanelWindow();
 <template>
   <div
     class="absolute right-0 bottom-0 size-4 cursor-nwse-resize touch-none text-faint transition-colors duration-150 hover:text-fg"
-    title="Drag to resize"
+    :title="t('Drag to resize')"
     @pointerdown="onResizeStart"
   >
     <svg

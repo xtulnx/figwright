@@ -103,6 +103,13 @@ describe('normalizeIdArgs', () => {
     expect(normalizeIdArgs('x')).toBe('x');
   });
 
+  it('preserves restore job handles while normalizing adjacent canvas IDs', () => {
+    expect(normalizeIdArgs({ restoreId: '1793989500648-1', pageId: '1-42' })).toEqual({
+      restoreId: '1793989500648-1',
+      pageId: '1:42',
+    });
+  });
+
   it('covers every top-level canvas-id arg any advertised tool exposes', () => {
     // normalizeIdArgs rewrites pasted Figma URLs / dash ids only for the fields in
     // STRING_ID_FIELDS (+ the nodeIds array). A new tool introducing e.g. `targetId` without
@@ -110,6 +117,7 @@ describe('normalizeIdArgs', () => {
     // classified: either a canvas node id (listed in STRING_ID_FIELDS) or a non-canvas id
     // namespace (allowlisted below, never URL-pasteable). Nested ids stay out of scope by design.
     const NON_CANVAS_ID_FIELDS = new Set([
+      'restoreId', // opaque backup-job handle; its timestamp-hyphen must not become a canvas id
       'styleId', // shared-style ids (S:…)
       'variableId', // variable ids (VariableID:…)
       'collectionId', // variable-collection ids

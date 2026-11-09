@@ -34,7 +34,7 @@ export const STALE_WRITE_MS = DEFAULT_TOOL_BUDGET_MS - 2 * BUDGET_LAYER_MARGIN_M
  */
 export const createUndoSteps = (
   figmaApi: Pick<PluginAPI, 'commitUndo'>,
-): ((handler: SandboxToolHandler) => SandboxToolHandler) => {
+): ((handler: SandboxToolHandler, staleMs?: number | null) => SandboxToolHandler) => {
   const running = new Set<symbol>();
   const settle = (write: symbol): void => {
     if (!running.delete(write) || running.size > 0) return;
@@ -44,15 +44,18 @@ export const createUndoSteps = (
       // No undo history to commit to; the call's own outcome stands.
     }
   };
-  return handler => async params => {
-    const write = Symbol('write');
-    running.add(write);
-    const stale = setTimeout(() => settle(write), STALE_WRITE_MS);
-    try {
-      return await handler(params);
-    } finally {
-      clearTimeout(stale);
-      settle(write);
-    }
-  };
+  return (handler, staleMs = STALE_WRITE_MS) =>
+    async params => {
+      const write = Symbol('write');
+      running.add(write);
+      // A cancellable restore job owns API timeouts and retains its step through cleanup.
+      // Normal writes keep main's expiry and concurrency behaviour unchanged.
+      const stale = staleMs === null ? undefined : setTimeout(() => settle(write), staleMs);
+      try {
+        return await handler(params);
+      } finally {
+        clearTimeout(stale);
+        settle(write);
+      }
+    };
 };

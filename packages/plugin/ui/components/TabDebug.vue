@@ -3,6 +3,7 @@ import { computed } from 'vue';
 
 import { useSharedNow } from '../composables/useSharedNow.js';
 import { formatClockTime, formatRelativeTime } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 import type { RelayClientState } from '../relay/state.js';
 import UiCopyButton from './UiCopyButton.vue';
 import UiMetaRow from './UiMetaRow.vue';
@@ -36,14 +37,14 @@ const averageMs = computed(() => {
 
 <template>
   <div class="divide-y divide-line px-1.5">
-    <UiSection title="Connection">
+    <UiSection :title="t('Connection')">
       <dl class="space-y-1">
-        <UiMetaRow label="Session" mono>
-          {{ shortId }}{{ state.sessionResumed ? ' (resumed)' : '' }}
+        <UiMetaRow :label="t('Session')" mono>
+          {{ shortId }}{{ state.sessionResumed ? t(' (resumed)') : '' }}
         </UiMetaRow>
-        <UiMetaRow label="Reconnects" mono>{{ state.reconnectCount }}</UiMetaRow>
-        <UiMetaRow label="Plugin" mono>v{{ pluginVersion }}</UiMetaRow>
-        <UiMetaRow v-if="state.serverVersion !== null" label="Server" mono>
+        <UiMetaRow :label="t('Reconnects')" mono>{{ state.reconnectCount }}</UiMetaRow>
+        <UiMetaRow :label="t('Plugin')" mono>v{{ pluginVersion }}</UiMetaRow>
+        <UiMetaRow v-if="state.serverVersion !== null" :label="t('Server')" mono>
           v{{ state.serverVersion }}
         </UiMetaRow>
       </dl>
@@ -55,17 +56,23 @@ const averageMs = computed(() => {
       </p>
     </UiSection>
 
-    <UiSection title="Calls">
+    <UiSection :title="t('Calls')">
       <dl class="space-y-1">
-        <UiMetaRow label="Total" mono>{{ state.totalCalls }}</UiMetaRow>
-        <UiMetaRow label="Failed" mono :value-class="state.failedCalls > 0 ? 'text-danger' : ''">
+        <UiMetaRow :label="t('Total')" mono>{{ state.totalCalls }}</UiMetaRow>
+        <UiMetaRow
+          :label="t('Failed')"
+          mono
+          :value-class="state.failedCalls > 0 ? 'text-danger' : ''"
+        >
           {{ state.failedCalls }}
         </UiMetaRow>
-        <UiMetaRow v-if="averageMs !== null" label="Avg (recent)" mono>{{ averageMs }}ms</UiMetaRow>
+        <UiMetaRow v-if="averageMs !== null" :label="t('Avg (recent)')" mono
+          >{{ averageMs }}ms</UiMetaRow
+        >
       </dl>
     </UiSection>
 
-    <UiSection title="Recent errors">
+    <UiSection :title="t('Recent errors')">
       <ul v-if="errorEntries.length > 0" class="space-y-1.5">
         <li v-for="entry in errorEntries" :key="entry.id" class="rounded-md bg-raised p-1.5">
           <div class="flex items-baseline justify-between gap-2">
@@ -82,17 +89,17 @@ const averageMs = computed(() => {
           </div>
         </li>
       </ul>
-      <p v-else class="text-dim">No errors.</p>
+      <p v-else class="text-dim">{{ t('No errors.') }}</p>
     </UiSection>
 
-    <UiSection title="Diagnostics">
+    <UiSection :title="t('Diagnostics')">
       <UiCopyButton
-        label="Copy diagnostic bundle"
+        :label="t('Copy diagnostic bundle')"
         :value="buildDiagnostics"
         :disabled="state.activity.length === 0"
       />
       <p class="mt-1.5 text-meta leading-relaxed text-dim">
-        For bug reports · includes your design content.
+        {{ t('For bug reports · includes your design content.') }}
       </p>
     </UiSection>
   </div>

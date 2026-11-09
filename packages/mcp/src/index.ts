@@ -1,5 +1,3 @@
-// Must stay the first import: the crash guard has to be in place before any other module runs.
-import './process-guard-install.js';
 import {
   DEFAULT_PORT,
   type GetScreenshotResult,
@@ -7,6 +5,9 @@ import {
   PROTOCOL_VERSION,
   type SearchNodesResult,
 } from '@figwright/shared';
+
+// Must stay the first import: the crash guard has to be in place before any other module runs.
+import './process-guard-install.js';
 import { McpServer } from '@modelcontextprotocol/server';
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { serveStdio, StdioServerTransport } from '@modelcontextprotocol/server/stdio';
@@ -30,6 +31,7 @@ import { normalizeIdArgs } from './node-id.js';
 import { PROMPTS } from './prompts/registry.js';
 import { ANALYZE_PROJECT_TOOL_NAME, handleAnalyzeProject } from './tools/analyze-project.js';
 import { annotationsFor } from './tools/annotations.js';
+import { BACKUP_DESIGN_TOOL_NAME, handleBackupDesign } from './tools/backup-design.js';
 import { BATCH_TOOL_NAME } from './tools/batch.js';
 import { COMPONENT_MAP_TOOL_NAME, handleComponentMap } from './tools/component-map.js';
 import { handleDesignContext } from './tools/design-context-guard.js';
@@ -45,10 +47,12 @@ import {
   resolveBatchImagePaths,
   resolveImagePath,
 } from './tools/import-image.js';
+import { INSPECT_BACKUP_TOOL_NAME, handleInspectBackup } from './tools/inspect-backup.js';
 import { handleListFiles, LIST_FILES_TOOL_NAME } from './tools/list-files.js';
 import { captureNotices, withRoutingNotice, withSkewNotice } from './tools/notices.js';
 import { formatPingResult, handlePing, pingTool } from './tools/ping.js';
 import { ALL_TOOL_SPECS } from './tools/registry.js';
+import { RESTORE_BACKUP_TOOL_NAME, handleRestoreBackup } from './tools/restore-backup.js';
 import { assertWithinLimit, fitNodeList } from './tools/result-budget.js';
 import { handleSaveImageFills, SAVE_IMAGE_FILLS_TOOL_NAME } from './tools/save-image-fills.js';
 import { handleSaveScreenshots, SAVE_SCREENSHOTS_TOOL_NAME } from './tools/save-screenshots.js';
@@ -199,6 +203,11 @@ const SPECIAL_HANDLERS: Record<string, ToolHandler> = {
     'pass root (a frame or section id) to scope it',
   ),
   [ANALYZE_PROJECT_TOOL_NAME]: async args => textResult(await handleAnalyzeProject(args)),
+  [RESTORE_BACKUP_TOOL_NAME]: async args =>
+    textResult(await handleRestoreBackup(await routedDispatch(), args)),
+  [BACKUP_DESIGN_TOOL_NAME]: async args =>
+    textResult(await handleBackupDesign(await routedDispatch(), args, SERVER_VERSION)),
+  [INSPECT_BACKUP_TOOL_NAME]: async args => textResult(await handleInspectBackup(args)),
   [SCAN_COMPONENTS_TOOL_NAME]: async args => textResult(await handleScanComponents(args)),
   [COMPONENT_MAP_TOOL_NAME]: async args =>
     textResult(await handleComponentMap(await routedDispatch(), args)),

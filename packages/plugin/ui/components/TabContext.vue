@@ -3,6 +3,7 @@ import { computed } from 'vue';
 
 import type { PluginContextEvent } from '../../protocol/bridge.js';
 import { editorLimitation } from '../../protocol/editor-context.js';
+import { t } from '../lib/i18n.js';
 import UiMetaRow from './UiMetaRow.vue';
 import UiSection from './UiSection.vue';
 
@@ -33,13 +34,13 @@ const hiddenCount = computed(() =>
   <div v-if="context !== null" class="divide-y divide-line px-1.5">
     <UiSection>
       <dl class="space-y-1.5">
-        <UiMetaRow label="File" truncate value-class="font-medium">
+        <UiMetaRow :label="t('File')" truncate value-class="font-medium">
           {{ context.fileName }}
         </UiMetaRow>
-        <UiMetaRow label="Page" truncate value-class="font-medium">
+        <UiMetaRow :label="t('Page')" truncate value-class="font-medium">
           {{ context.pageName }}
         </UiMetaRow>
-        <UiMetaRow label="Editor" mono value-class="text-dim">
+        <UiMetaRow :label="t('Editor')" mono value-class="text-dim">
           {{ editor }}
         </UiMetaRow>
       </dl>
@@ -48,11 +49,11 @@ const hiddenCount = computed(() =>
         v-if="limitation !== null"
         class="mt-1.5 rounded-md bg-raised p-1.5 text-meta wrap-break-word text-warning"
       >
-        {{ limitation }}
+        {{ t(limitation) }}
       </p>
     </UiSection>
 
-    <UiSection :title="`Selection (${context.selectionCount})`">
+    <UiSection :title="t('Selection ({count})', { count: context.selectionCount })">
       <ul v-if="context.selection.length > 0" class="space-y-0.5">
         <li
           v-for="node in context.selection"
@@ -67,10 +68,12 @@ const hiddenCount = computed(() =>
             {{ node.width }}×{{ node.height }}
           </span>
         </li>
-        <li v-if="hiddenCount > 0" class="px-1 text-dim">…and {{ hiddenCount }} more</li>
+        <li v-if="hiddenCount > 0" class="px-1 text-dim">
+          {{ t('…and {count} more', { count: hiddenCount }) }}
+        </li>
       </ul>
-      <p v-else class="px-1 text-dim">Nothing selected</p>
+      <p v-else class="px-1 text-dim">{{ t('Nothing selected') }}</p>
     </UiSection>
   </div>
-  <p v-else class="px-1.5 text-dim">Waiting for plugin context…</p>
+  <p v-else class="px-1.5 text-dim">{{ t('Waiting for plugin context…') }}</p>
 </template>

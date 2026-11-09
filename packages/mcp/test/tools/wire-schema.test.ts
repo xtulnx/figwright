@@ -5,14 +5,18 @@ import { join } from 'node:path';
 import { ErrorCode } from '@figwright/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { encodeBackupArchive } from '../../src/backup/archive.js';
 import { handleAnalyzeProject } from '../../src/tools/analyze-project.js';
+import { handleBackupDesign } from '../../src/tools/backup-design.js';
 import { handleComponentMap } from '../../src/tools/component-map.js';
 import { handleDesignContext } from '../../src/tools/design-context-guard.js';
 import { handleDesignDiff } from '../../src/tools/design-diff.js';
 import { handleExportPdf } from '../../src/tools/export-pdf.js';
 import { handleExportVideo } from '../../src/tools/export-video.js';
 import { handleIconMap } from '../../src/tools/icon-map.js';
+import { handleInspectBackup } from '../../src/tools/inspect-backup.js';
 import { ALL_TOOL_SPECS } from '../../src/tools/registry.js';
+import { handleRestoreBackup } from '../../src/tools/restore-backup.js';
 import { handleSaveImageFills } from '../../src/tools/save-image-fills.js';
 import { handleSaveScreenshots } from '../../src/tools/save-screenshots.js';
 import { handleScanComponents } from '../../src/tools/scan-components.js';
@@ -24,6 +28,19 @@ let root: string;
 
 beforeAll(async () => {
   root = await mkdtemp(join(tmpdir(), 'figwright-wire-schema-'));
+  await writeFile(
+    join(root, 'restore.figwright-backup'),
+    encodeBackupArchive(
+      {
+        captureVersion: 1,
+        source: { name: 'Test', editorType: 'figma' },
+        nodes: [{ id: 'p', type: 'PAGE', parentId: null, children: [], properties: {} }],
+        pageIds: ['p'],
+        issues: [],
+      },
+      '0.7.0',
+    ),
+  );
   await writeFile(join(root, 'package.json'), JSON.stringify({ name: 'fixture' }), 'utf8');
 });
 
@@ -106,6 +123,19 @@ describe('server-built plugin payloads satisfy the schema the leader validates',
     run: (dispatch: (toolName: string, args: unknown) => Promise<never>) => Promise<unknown>;
     expected: string[];
   }[] => [
+    {
+      tool: 'restore_backup',
+      label: 'restore_backup (stage upload)',
+      run: d =>
+        handleRestoreBackup(d, { path: join(root, 'restore.figwright-backup'), dryRun: false }),
+      expected: ['restore_backup'],
+    },
+    {
+      tool: 'backup_design',
+      label: 'backup_design (start frozen capture)',
+      run: d => handleBackupDesign(d, { outPath: 'unused.figwright-backup' }, '0.7.0'),
+      expected: ['backup_design'],
+    },
     {
       tool: 'get_design_context',
       label: 'get_design_context (guarded public path)',
@@ -245,6 +275,7 @@ describe('server-built plugin payloads satisfy the schema the leader validates',
     const noDispatch: Record<string, (rawArgs: unknown) => Promise<unknown>> = {
       analyze_project: handleAnalyzeProject,
       scan_components: handleScanComponents,
+      inspect_backup: handleInspectBackup,
     };
     for (const [name, handler] of Object.entries(noDispatch)) {
       expect(handler.length, `${name} takes a dispatcher — it belongs in the case list`).toBe(1);

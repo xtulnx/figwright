@@ -2,6 +2,7 @@
 import { Minimize2 } from '@lucide/vue';
 
 import { usePanelWindow } from '../composables/usePanelWindow.js';
+import { t } from '../lib/i18n.js';
 
 const { runInBackground } = usePanelWindow();
 </script>
@@ -30,8 +31,12 @@ const { runInBackground } = usePanelWindow();
 <template>
   <button
     class="-my-1 shrink-0 rounded p-1 text-faint transition-colors duration-150 hover:bg-hover hover:text-fg"
-    title="Run in background — hides the panel; the relay stays connected. Reopen by running the plugin again."
-    aria-label="Run in background"
+    :title="
+      t(
+        'Run in background — hides the panel; the relay stays connected. Reopen by running the plugin again.',
+      )
+    "
+    :aria-label="t('Run in background')"
     @click="runInBackground"
   >
     <Minimize2 class="size-3" />

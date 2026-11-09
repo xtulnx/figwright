@@ -282,6 +282,7 @@ describe.skipIf(!existsSync(DIST_ENTRY))('MCP wire contract (built dist)', () =>
     const advertised = (name: string): unknown => tools.find(t => t.name === name)?.annotations;
     expect(advertised('get_node')).toEqual({ readOnlyHint: true });
     expect(advertised('analyze_project')).toEqual({ readOnlyHint: true });
+    expect(advertised('restore_backup')).toEqual({ readOnlyHint: false, destructiveHint: false });
     expect(advertised('set_fills')).toEqual({ readOnlyHint: false, destructiveHint: false });
     expect(advertised('delete_nodes')).toEqual({ readOnlyHint: false, destructiveHint: true });
   });

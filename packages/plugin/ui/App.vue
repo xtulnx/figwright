@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, onScopeDispose, watchEffect } from 'vue';
 
 import { isEmbeddedInPanel } from '../protocol/editor-context.js';
 import PanelBackgroundButton from './components/PanelBackgroundButton.vue';
@@ -8,16 +8,39 @@ import PanelGrip from './components/PanelGrip.vue';
 import PanelStatus from './components/PanelStatus.vue';
 import PanelTabs from './components/PanelTabs.vue';
 import TabActivity from './components/TabActivity.vue';
+import TabBackup from './components/TabBackup.vue';
 import TabContext from './components/TabContext.vue';
 import TabDebug from './components/TabDebug.vue';
+import { useBackup } from './composables/useBackup.js';
 import { useRelaySession } from './composables/useRelaySession.js';
+import {
+  t,
+  locale,
+  languagePreference,
+  setLanguage,
+  refreshSystemLanguage,
+  type LanguagePreference,
+} from './lib/i18n.js';
 import type { Tab } from './lib/tabs.js';
 
 const appVersion = __APP_VERSION__;
 
-const { state, context, busy, sessionId, buildDiagnostics } = useRelaySession(appVersion);
+const { state, context, busy, sessionId, buildDiagnostics, callSandbox } =
+  useRelaySession(appVersion);
+
+onMounted(() => {
+  refreshSystemLanguage();
+  window.addEventListener('languagechange', refreshSystemLanguage);
+});
+onScopeDispose(() => window.removeEventListener('languagechange', refreshSystemLanguage));
+watchEffect(() => {
+  document.documentElement.lang = locale.value;
+});
+const changeLanguage = (event: Event): void =>
+  setLanguage((event.target as HTMLSelectElement).value as LanguagePreference);
 
 const tab = ref<Tab>('activity');
+const backup = useBackup(callSandbox, context, appVersion);
 
 /**
  * In Dev Mode's Inspect panel our UI is an iframe filling a panel Figma sizes, so neither piece of
@@ -46,18 +69,36 @@ const embedded = computed(() => context.value !== null && isEmbeddedInPanel(cont
     <!-- Indeterminate sweep along the panel's top edge — the one ambient signal that the agent is
          mid-call. It sits above the header rather than under the tabs, where a moving line would
          read as a tab underline and fight the selected-tab pill. -->
-    <span v-if="busy" class="absolute inset-x-0 top-0 z-10 block h-0.5 overflow-hidden">
+    <span
+      v-if="busy || backup.state.busy"
+      class="absolute inset-x-0 top-0 z-10 block h-0.5 overflow-hidden"
+    >
       <span class="block h-full w-1/4 animate-sweep bg-brand" />
     </span>
 
     <header class="relative shrink-0 border-b border-line px-3 pt-2.5 pb-2">
       <div class="flex items-center gap-1.5">
         <PanelStatus
+          v-if="tab !== 'backup'"
           class="min-w-0 flex-1"
           :status="state.status"
           :port="state.port"
           :connected-at="state.connectedAt"
         />
+        <div v-else class="min-w-0 flex-1 truncate font-medium text-fg">
+          {{ t('Local backup · Figwright') }}
+        </div>
+        <select
+          :value="languagePreference"
+          :aria-label="t('Language')"
+          :title="t('Language')"
+          class="max-w-20 shrink-0 rounded border border-line bg-surface px-1 py-0.5 text-meta text-dim"
+          @change="changeLanguage"
+        >
+          <option value="auto">{{ t('Automatic') }}</option>
+          <option value="zh-CN">中文</option>
+          <option value="en">English</option>
+        </select>
         <PanelBackgroundButton v-if="!embedded" />
       </div>
       <!-- Something about this build's version that no reconnect will change: it is behind the
@@ -68,7 +109,7 @@ const embedded = computed(() => context.value !== null && isEmbeddedInPanel(cont
            Severity is read off the connection rather than stored: a refusal never reaches
            'connected', so a notice on a live connection is the survivable one. -->
       <p
-        v-if="state.versionNotice !== null"
+        v-if="tab !== 'backup' && state.versionNotice !== null"
         class="mt-2 rounded-md bg-raised p-1.5 text-meta wrap-break-word"
         :class="state.status === 'connected' ? 'text-warning' : 'text-danger'"
       >
@@ -97,6 +138,7 @@ const embedded = computed(() => context.value !== null && isEmbeddedInPanel(cont
             :connected="state.status === 'connected'"
           />
           <TabContext v-else-if="tab === 'context'" :context="context" />
+          <TabBackup v-else-if="tab === 'backup'" :controller="backup" :context="context" />
           <TabDebug
             v-else
             :state="state"

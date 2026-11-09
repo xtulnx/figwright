@@ -1,9 +1,8 @@
+import { z } from 'zod';
 // Single source of truth for what the MCP server advertises and which tools are writes. index.ts
 // registers every spec with McpServer (which generates the advertised JSON Schema from each Zod
 // inputSchema); the write set is derived from `kind`, not maintained by hand. A registry test asserts
 // these stay in sync with the plugin's handler map so a new tool can't be half-wired.
-
-import { z } from 'zod';
 
 import { addComponentPropertyTool } from './add-component-property.js';
 import { addPageTool } from './add-page.js';
@@ -13,6 +12,7 @@ import { analyzeProjectTool } from './analyze-project.js';
 import { applyAnimationStyleTool } from './apply-animation-style.js';
 import { applyManualKeyframeTrackTool } from './apply-manual-keyframe-track.js';
 import { applyStyleToNodeTool } from './apply-style-to-node.js';
+import { backupDesignTool } from './backup-design.js';
 import { batchRenameNodesTool } from './batch-rename-nodes.js';
 import { batchTool } from './batch.js';
 import { bindComponentPropertyTool } from './bind-component-property.js';
@@ -79,6 +79,7 @@ import { importImageTool } from './import-image.js';
 import { importStyleTool } from './import-style.js';
 import { importSvgTool } from './import-svg.js';
 import { importVariableTool } from './import-variable.js';
+import { inspectBackupTool } from './inspect-backup.js';
 import { listFilesTool } from './list-files.js';
 import { lockNodesTool } from './lock-nodes.js';
 import { moveNodesTool } from './move-nodes.js';
@@ -95,6 +96,7 @@ import { reorderNodesTool } from './reorder-nodes.js';
 import { reparentNodesTool } from './reparent-nodes.js';
 import { repeatNodesTool } from './repeat-nodes.js';
 import { resizeNodesTool } from './resize-nodes.js';
+import { restoreBackupTool } from './restore-backup.js';
 import { rotateNodesTool } from './rotate-nodes.js';
 import { saveImageFillsTool } from './save-image-fills.js';
 import { saveScreenshotsTool } from './save-screenshots.js';
@@ -183,6 +185,9 @@ const DECLARED_TOOL_SPECS: readonly ToolSpec[] = [
   // Server-local (filesystem; no plugin handler — like save_screenshots). analyze_project is an
   // optional standalone probe; scan_components / component_map also run detection internally.
   analyzeProjectTool,
+  backupDesignTool,
+  inspectBackupTool,
+  restoreBackupTool,
   scanComponentsTool,
   componentMapTool,
   tokenMapTool,

@@ -2166,6 +2166,8 @@ const INVERSES: Readonly<Record<string, BatchInverse>> = {
  * either side without someone deciding which, and saying why when it is this one.
  */
 export const NON_BATCHABLE: Readonly<Record<string, string>> = {
+  restore_backup:
+    'Backup restore uses staged uploads and its own cleanup; call restore_backup directly rather than inside batch.',
   import_variable:
     'a library import has no faithful inverse; import the variable before the batch and use its returned variableId',
   import_style:
