@@ -238,10 +238,9 @@ if (!/^y(es)?$/i.test(confirmed)) abort();
 const { status } = spawnSync('pnpm', args, { cwd: repoRoot, stdio: 'inherit' });
 if (status !== 0) process.exit(status ?? 1);
 
-// The push is the irreversible half: the tag landing on GitHub starts
-// release.yml, which publishes to npm — and npm forbids reusing a version even
-// after an unpublish. So it gets its own prompt, defaulting to no, and the tag
-// sits locally (deletable, retaggable) until that prompt is answered.
+// Pushing the tag starts release.yml and makes downloadable GitHub Release
+// assets public. It gets its own prompt, defaulting to no, and the tag sits
+// locally (deletable, retaggable) until that prompt is answered.
 const branch = git('rev-parse', '--abbrev-ref', 'HEAD');
 
 console.log();
@@ -251,7 +250,7 @@ console.log(
 console.log(
   `  Pushing ${branch} + ${tag} starts the release workflow: ${styleText(
     'bold',
-    'it publishes @figwright/mcp to npm',
+    'it uploads the Figma plugin and MCP tarball to GitHub Releases',
   )}.`,
 );
 console.log();
@@ -275,5 +274,5 @@ if (push.status !== 0) {
 
 console.log();
 console.log(`  ${styleText('green', '✔')} pushed. release.yml is building ${tag}:`);
-console.log(`    ${styleText('bold', 'https://github.com/awdr74100/figwright/actions')}`);
+console.log(`    ${styleText('bold', 'https://github.com/xtulnx/figwright/actions')}`);
 console.log();

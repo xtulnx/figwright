@@ -54,6 +54,41 @@ Everything runs on your machine: the server, the relay, and the plugin. Your des
 
 ## Setup
 
+### Install this fork's release assets
+
+This fork does not publish to npm. Download `figwright-plugin-vX.Y.Z.zip` and
+`figwright-mcp-vX.Y.Z.tgz` from the same [GitHub Release](https://github.com/xtulnx/figwright/releases).
+Unzip the plugin and import its `manifest.json` through **Plugins → Development →
+Import plugin from manifest…** in Figma desktop.
+
+The MCP tarball is already compiled. With Node.js 26 installed, install it locally
+(replace the paths with your own):
+
+```bash
+npm install --prefix /absolute/path/figwright-local /absolute/path/figwright-mcp-vX.Y.Z.tgz
+```
+
+Installation downloads runtime dependencies from npm; the tarball does not include
+`node_modules`. No source checkout or pnpm is needed. Configure your MCP client:
+
+```json
+{
+  "mcpServers": {
+    "figwright": {
+      "command": "node",
+      "args": ["/absolute/path/figwright-local/node_modules/@figwright/mcp/dist/index.mjs"]
+    }
+  }
+}
+```
+
+Use an absolute path to the Node.js executable if your client cannot find `node`.
+To update, install the new tarball, replace the plugin files, and restart both.
+Asset names follow the Git tag; the embedded package version still comes from
+`packages/mcp/package.json`, which manually creating a tag does not change.
+
+The `npx` instructions below run the upstream npm release rather than this fork.
+
 You need an **MCP client** (Claude Code, Cursor, …), **Node.js 20.19+ or 22.12+**, and **Figma**. The free Figma tier is enough, though the desktop app is needed to import the plugin. The server runs via `npx` as its own process, so its Node version is independent of the one your project builds with; Node 18/21 and 22.0–22.11 are not supported.
 
 ### 1. Add the server to your MCP client

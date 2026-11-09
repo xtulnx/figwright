@@ -47,7 +47,32 @@ Figwright 使用本地 WebSocket 将 **MCP 服务端**与 **Figma 插件**连接
 
 使用 MCP 自动化需要 MCP 客户端、Node.js 和 Figma。**当前源码的运行要求为 Node.js `^24.11.0 || >=26.0.0`**；本仓库开发环境使用 `.node-version` 指定的版本和 `package.json` 指定的 pnpm。导入开发插件需要 Figma 桌面端。
 
-以下 `@latest` 配置运行的是 npm 已发布版本；本分支新增的备份功能请按下文的[本地源码运行](#本地源码运行)操作，发布版本不一定包含这些功能。
+本 fork 不发布 npm 包。[GitHub Release](https://github.com/xtulnx/figwright/releases) 提供 Figma 插件 zip 和已编译的 MCP 安装包 tgz，可按下文安装；也可使用[本地源码运行](#本地源码运行)。以下 `@latest` 配置运行的是上游 npm 版本，不一定包含本分支的功能。
+
+### 使用本 fork 的发布包
+
+下载同一个 Release 的 `figwright-plugin-vX.Y.Z.zip` 和 `figwright-mcp-vX.Y.Z.tgz`。插件解压后，在 Figma 桌面端通过 **Plugins → Development → Import plugin from manifest…** 导入其中的 `manifest.json`。
+
+MCP 包已经编译，无需 pnpm 或源码。安装 Node.js 26 后，执行（替换为实际路径）：
+
+```bash
+npm install --prefix /absolute/path/figwright-local /absolute/path/figwright-mcp-vX.Y.Z.tgz
+```
+
+首次安装需要联网下载运行依赖；tgz 不包含 `node_modules`。在 MCP 客户端中配置：
+
+```json
+{
+  "mcpServers": {
+    "figwright": {
+      "command": "node",
+      "args": ["/absolute/path/figwright-local/node_modules/@figwright/mcp/dist/index.mjs"]
+    }
+  }
+}
+```
+
+如果客户端找不到 Node.js，将 `command` 替换为 Node.js 可执行文件的绝对路径。更新时安装新版 tgz、替换插件文件，再重启 MCP 连接和插件。附件名称使用 Git tag；包内版本仍取自 `packages/mcp/package.json`，手动打 tag 不会自动修改该版本。
 
 ### 1. 配置 MCP 服务端
 
@@ -70,7 +95,7 @@ Figwright 使用本地 WebSocket 将 **MCP 服务端**与 **Figma 插件**连接
 
 插件通过开发插件方式导入：
 
-1. 从 [GitHub 最新 Release](https://github.com/awdr74100/figwright/releases/latest) 下载插件 zip 并解压。
+1. 从 [本 fork 的 GitHub Release](https://github.com/xtulnx/figwright/releases) 下载插件 zip 并解压。
 2. 在 Figma 桌面端依次选择 **Menu → Plugins → Development → Import plugin from manifest…**。
 3. 选择解压目录中的 `manifest.json`。
 

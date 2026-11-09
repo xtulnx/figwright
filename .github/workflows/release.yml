@@ -1,9 +1,7 @@
 name: Release
 
-# Triggered by the tag that `pnpm release` (changelogen --release) creates and
-# you push. Builds, gates, publishes @figwright/mcp to npm with provenance via
-# OIDC trusted publishing, creates the GitHub Release from the changelog, and
-# attaches the Figma plugin as a downloadable asset.
+# Builds and tests pushed tags, then attaches the Figma plugin and an
+# installable MCP tarball to a GitHub Release. Nothing is published to npm.
 on:
   push:
     tags: ['v*']
@@ -18,48 +16,51 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # GitHub Release + plugin asset upload
-      id-token: write # OIDC: npm trusted publishing + provenance
+      contents: write # GitHub Release + asset upload
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0 # full history so changelogen can diff from the last tag
+          fetch-depth: 0
           # Release steps talk to GitHub via the API tokens below, never git push.
           persist-credentials: false
 
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
 
-      # No pnpm cache here: this workflow publishes to npm, and restoring a
-      # shared cache into a publish job is a cache-poisoning vector.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
           package-manager-cache: false
-          registry-url: 'https://registry.npmjs.org'
 
       - run: pnpm install --frozen-lockfile
 
-      # Gate before the irreversible publish. `pnpm build` also builds the
+      # Gate before uploading release assets. `pnpm build` also builds the
       # plugin (dist/code.js + dist/index.html) packaged as an asset below.
       - run: pnpm build
       - run: pnpm test
 
-      # Publish @figwright/mcp. `pnpm pack` resolves workspace:* into a clean
-      # tarball; `npm publish` does OIDC trusted publishing (no token) + provenance.
-      - run: pnpm -C packages/mcp pack
-      - run: npm publish packages/mcp/figwright-mcp-*.tgz --provenance --access public
+      # The tarball includes dist and package metadata; npm installs its runtime
+      # dependencies locally. Use the tag in asset names even for manually
+      # created tags whose package.json version has not been bumped.
+      - name: Package the MCP server
+        run: |
+          mkdir -p "$RUNNER_TEMP/mcp"
+          pnpm -C packages/mcp pack --pack-destination "$RUNNER_TEMP/mcp"
+          mv "$RUNNER_TEMP"/mcp/figwright-mcp-*.tgz "$RUNNER_TEMP/figwright-mcp-${GITHUB_REF_NAME}.tgz"
 
-      # Create the GitHub Release from the changelog (after npm succeeds).
-      - run: pnpm -C packages/mcp exec changelogen gh release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Attach the Figma plugin (manifest + built UI/sandbox) so users can
-      # "Import plugin from manifest" in Figma dev mode until it's on Community.
-      - name: Package & upload the Figma plugin
+      - name: Package the Figma plugin
         working-directory: packages/plugin
         run: |
           zip -r "$RUNNER_TEMP/figwright-plugin-${GITHUB_REF_NAME}.zip" manifest.json dist
-          gh release upload "$GITHUB_REF_NAME" "$RUNNER_TEMP/figwright-plugin-${GITHUB_REF_NAME}.zip" --clobber
+
+      # GitHub-generated notes use the tag, independently of the npm package
+      # version. Reuse an existing release so failed uploads can be retried.
+      - name: Create release & upload assets
+        run: |
+          if ! gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+          fi
+          gh release upload "$GITHUB_REF_NAME" \
+            "$RUNNER_TEMP/figwright-plugin-${GITHUB_REF_NAME}.zip" \
+            "$RUNNER_TEMP/figwright-mcp-${GITHUB_REF_NAME}.tgz" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

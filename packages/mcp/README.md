@@ -6,6 +6,24 @@ Figwright bridges MCP clients to a Figma plugin over a local WebSocket relay, so
 
 ## Usage
 
+### Local installation from this fork
+
+This fork distributes compiled MCP tarballs through
+[GitHub Releases](https://github.com/xtulnx/figwright/releases), without publishing
+to npm. With Node.js 26 installed, download `figwright-mcp-vX.Y.Z.tgz` and run:
+
+```bash
+npm install --prefix /absolute/path/figwright-local /absolute/path/figwright-mcp-vX.Y.Z.tgz
+```
+
+Installation requires internet access to download runtime dependencies. Configure
+your MCP client with `"command": "node"` and
+`"args": ["/absolute/path/figwright-local/node_modules/@figwright/mcp/dist/index.mjs"]`.
+Use the Figma plugin zip from the same release. The `npx` instructions below run
+the upstream npm package instead.
+
+### Upstream npm installation
+
 Add it to your MCP client config (e.g. Claude Code's `.mcp.json`):
 
 ```json
